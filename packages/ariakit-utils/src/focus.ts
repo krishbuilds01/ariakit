@@ -355,6 +355,10 @@ export function getClosestFocusable(element?: HTMLElement | null) {
   return element || null;
 }
 
+function isShadowRoot(node: Node): node is ShadowRoot {
+  return node.nodeType === node.DOCUMENT_FRAGMENT_NODE && "host" in node;
+}
+
 /**
  * Checks if `element` has focus. Elements that are referenced by
  * `aria-activedescendant` are also considered.
@@ -380,6 +384,10 @@ export function hasFocusWithin(element: Node | Element) {
   const activeElement = getActiveElement(element);
   if (!activeElement) return false;
   if (contains(element, activeElement)) return true;
+  const root = element.getRootNode();
+  if (isShadowRoot(root) && root.activeElement) {
+    if (contains(element, root.activeElement)) return true;
+  }
   const activeDescendant = activeElement.getAttribute("aria-activedescendant");
   if (!activeDescendant) return false;
   if (!("id" in element)) return false;
